@@ -189,4 +189,12 @@
 
   </simplesect>
 
+  <simplesect><title>BTRFS plugin</title>
+  <para>
+    <literal>bd_btrfs_list_subvolumes</literal> has a new parameter <literal>absolute_path</literal>.
+    Use <literal>False</literal> to preserve the original behaviour.
+  </para>
+
+  </simplesect>
+
 </chapter>

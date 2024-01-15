@@ -199,13 +199,13 @@ class BtrfsTestCreateDeleteSubvolume(BtrfsTestCase):
 
         mount(self.loop_dev, TEST_MNT)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 0)
 
         succ = BlockDev.btrfs_create_subvolume(TEST_MNT, "subvol1", None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 1)
 
         # already there
@@ -217,7 +217,7 @@ class BtrfsTestCreateDeleteSubvolume(BtrfsTestCase):
         succ = BlockDev.btrfs_delete_subvolume(TEST_MNT, "subvol1", None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 0)
 
         # already removed
@@ -229,14 +229,14 @@ class BtrfsTestCreateDeleteSubvolume(BtrfsTestCase):
         self.assertTrue(succ)
 
         # add it back
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 1)
 
         # and create another subvolume in it
         succ = BlockDev.btrfs_create_subvolume(os.path.join(TEST_MNT, "subvol1"), "subvol1.1", None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 2)
 
         # make sure subvolumes are sorted properly (parents before children)
@@ -252,21 +252,21 @@ class BtrfsTestCreateSnapshot(BtrfsTestCase):
 
         mount(self.loop_dev, TEST_MNT)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True, False)
         self.assertEqual(len(subvols), 0)
 
         # R/W snapshot
         succ = BlockDev.btrfs_create_snapshot(TEST_MNT, TEST_MNT + "/snap1", False, None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True, False)
         self.assertEqual(len(subvols), 1)
 
         # RO snapshot
         succ = BlockDev.btrfs_create_snapshot(TEST_MNT, TEST_MNT + "/snap2", True, None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True, False)
         self.assertEqual(len(subvols), 2)
 
 class BtrfsTestGetDefaultSubvolumeID(BtrfsTestCase):
@@ -300,7 +300,7 @@ class BtrfsTestSetDefaultSubvolumeID(BtrfsTestCase):
         succ = BlockDev.btrfs_create_subvolume(TEST_MNT, "subvol1", None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 1)
 
         new_id = next((subvol.id for subvol in subvols), None)
@@ -344,13 +344,13 @@ class BtrfsTestListSubvolumes(BtrfsTestCase):
 
         mount(self.loop_dev, TEST_MNT)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, True, False)
         self.assertEqual(len(subvols), 0)
 
         succ = BlockDev.btrfs_create_subvolume(TEST_MNT, "subvol1", None)
         self.assertTrue(succ)
 
-        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False)
+        subvols = BlockDev.btrfs_list_subvolumes(TEST_MNT, False, False)
         self.assertEqual(len(subvols), 1)
         self.assertEqual(subvols[0].parent_id, 5)
         self.assertEqual(subvols[0].path, "subvol1")
@@ -556,7 +556,7 @@ class FakeBtrfsUtilsTestCase(BtrfsTest):
         BlockDev.btrfs_is_tech_avail(BlockDev.BtrfsTech.FS, 0)
 
         with fake_utils("tests/fake_utils/btrfs_subvols_docker"):
-            subvols = BlockDev.btrfs_list_subvolumes("fake_dev", False)
+            subvols = BlockDev.btrfs_list_subvolumes("fake_dev", False, False)
 
         # make sure subvolumes are sorted properly (parents before children)
         seen = set()

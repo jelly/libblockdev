@@ -633,6 +633,7 @@ BDBtrfsDeviceInfo** bd_btrfs_list_devices (const gchar *device, GError **error) 
  * bd_btrfs_list_subvolumes:
  * @mountpoint: a mountpoint of the queried btrfs volume
  * @snapshots_only: whether to list only snapshot subvolumes or not
+ * @absolute_path: distinguish between absolute and relative path with respect to the given path.
  * @error: (out) (optional): place to store error (if any)
  *
  * Returns: (array zero-terminated=1): information about the subvolumes that are part of the btrfs volume
@@ -643,12 +644,13 @@ BDBtrfsDeviceInfo** bd_btrfs_list_devices (const gchar *device, GError **error) 
  *
  * Tech category: %BD_BTRFS_TECH_SUBVOL-%BD_BTRFS_TECH_MODE_QUERY
  */
-BDBtrfsSubvolumeInfo** bd_btrfs_list_subvolumes (const gchar *mountpoint, gboolean snapshots_only, GError **error) {
+BDBtrfsSubvolumeInfo** bd_btrfs_list_subvolumes (const gchar *mountpoint, gboolean snapshots_only, gboolean absolute_path, GError **error) {
     const gchar *argv[7] = {"btrfs", "subvol", "list", "-p", NULL, NULL, NULL};
     gchar *output = NULL;
     gboolean success = FALSE;
     gchar **lines = NULL;
     gchar **line_p = NULL;
+    // Strip optional <FS_TREE> after path
     gchar const * const pattern = "ID\\s+(?P<id>\\d+)\\s+gen\\s+\\d+\\s+(cgen\\s+\\d+\\s+)?" \
                                   "parent\\s+(?P<parent_id>\\d+)\\s+top\\s+level\\s+\\d+\\s+" \
                                   "(otime\\s+(\\d{4}-\\d{2}-\\d{2}\\s+\\d\\d:\\d\\d:\\d\\d|-)\\s+)?"\
@@ -668,9 +670,15 @@ BDBtrfsSubvolumeInfo** bd_btrfs_list_subvolumes (const gchar *mountpoint, gboole
         !check_module_deps (&avail_module_deps, MODULE_DEPS_BTRFS_MASK, module_deps, MODULE_DEPS_LAST, &deps_check_lock, error))
         return NULL;
 
-    if (snapshots_only) {
-        argv[4] = "-s";
+    if (snapshots_only || absolute_path) {
         argv[5] = mountpoint;
+	if (snapshots_only && !absolute_path) {
+             argv[4] = "-asp";
+	} else if (snapshots_only) {
+             argv[4] = "-s";
+	} else if (absolute_path) {
+             argv[4] = "-ap";
+	}
     } else
         argv[4] = mountpoint;
 
