@@ -78,7 +78,7 @@ gboolean bd_btrfs_create_volume (const gchar **devices, const gchar *label, cons
 gboolean bd_btrfs_add_device (const gchar *mountpoint, const gchar *device, const BDExtraArg **extra, GError **error);
 gboolean bd_btrfs_remove_device (const gchar *mountpoint, const gchar *device, const BDExtraArg **extra, GError **error);
 gboolean bd_btrfs_create_subvolume (const gchar *mountpoint, const gchar *name, const BDExtraArg **extra, GError **error);
-gboolean bd_btrfs_delete_subvolume (const gchar *mountpoint, const gchar *name, const BDExtraArg **extra, GError **error);
+gboolean bd_btrfs_delete_subvolume (const gchar *mountpoint, const gchar *name, GError **error);
 guint64 bd_btrfs_get_default_subvolume_id (const gchar *mountpoint, GError **error);
 gboolean bd_btrfs_set_default_subvolume (const gchar *mountpoint, guint64 subvol_id, GError **error);
 gboolean bd_btrfs_create_snapshot (const gchar *source, const gchar *dest, gboolean ro, const BDExtraArg **extra, GError **error);

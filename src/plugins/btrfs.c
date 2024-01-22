@@ -420,31 +420,28 @@ gboolean bd_btrfs_create_subvolume (const gchar *mountpoint, const gchar *name, 
  * bd_btrfs_delete_subvolume:
  * @mountpoint: mountpoint of the btrfs volume to delete subvolume from
  * @name: name of the subvolume
- * @extra: (nullable) (array zero-terminated=1): extra options for the subvolume deletion (right now
- *                                                 passed to the 'btrfs' utility)
  * @error: (out) (optional): place to store error (if any)
  *
  * Returns: whether the @mountpoint/@name subvolume was successfully deleted or not
  *
  * Tech category: %BD_BTRFS_TECH_SUBVOL-%BD_BTRFS_TECH_MODE_DELETE
  */
-gboolean bd_btrfs_delete_subvolume (const gchar *mountpoint, const gchar *name, const BDExtraArg **extra, GError **error) {
+gboolean bd_btrfs_delete_subvolume (const gchar *mountpoint, const gchar *name, GError **error) {
     gchar *path = NULL;
+    enum btrfs_util_error err;
     gboolean success = FALSE;
-    const gchar *argv[5] = {"btrfs", "subvol", "delete", NULL, NULL};
-
-    if (!check_deps (&avail_deps, DEPS_BTRFS_MASK, deps, DEPS_LAST, &deps_check_lock, error) ||
-        !check_module_deps (&avail_module_deps, MODULE_DEPS_BTRFS_MASK, module_deps, MODULE_DEPS_LAST, &deps_check_lock, error))
-        return FALSE;
 
     if (g_str_has_suffix (mountpoint, "/"))
         path = g_strdup_printf ("%s%s", mountpoint, name);
     else
         path = g_strdup_printf ("%s/%s", mountpoint, name);
-    argv[3] = path;
 
-    success = bd_utils_exec_and_report_error (argv, extra, error);
-    g_free (path);
+    // TODO: flags, allow for recursive deletion? BTRFS_UTIL_DELETE_SUBVOLUME_RECURSIVE
+    err = btrfs_util_delete_subvolume (path, 0);
+    if (err)
+        g_set_error (error, BD_BTRFS_ERROR, BD_BTRFS_ERROR_NOT_FOUND, format_btrfs_error (err));
+    else
+        success = TRUE;
 
     return success;
 }
@@ -464,9 +461,8 @@ guint64 bd_btrfs_get_default_subvolume_id (const gchar *mountpoint, GError **err
     guint64 ret = 0;
 
     err = btrfs_util_get_default_subvolume (mountpoint, &ret);
-    if (err) {
+    if (err)
         g_set_error (error, BD_BTRFS_ERROR, BD_BTRFS_ERROR_NOT_FOUND, format_btrfs_error (err));
-    }
 
     return ret;
 }
